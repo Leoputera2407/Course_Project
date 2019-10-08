@@ -1,0 +1,11 @@
+report.pdf
+labeled_data.csv
+comments-minimal.json.bz2
+submissions.json.bz2
+__pycache__
+pos.model
+neg.model
+*.csv
+*.temp
+st99_d00.*
+*.png

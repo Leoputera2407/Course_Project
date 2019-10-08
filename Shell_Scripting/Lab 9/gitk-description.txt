@@ -1,0 +1,5 @@
+The top left most window, shows the graph of the repository -- the merges, branches and commits. The next window to the right shows the actors of those merges, commits and their contact details. The next window to the right shows the associated dates of those actions.
+
+At the bottom, there are some searching functionalities to find commit by their hash or names.
+At the bottom left, it shows the ChangeLogs of the action selected and on the right of that the files that are modified by those actions.
+

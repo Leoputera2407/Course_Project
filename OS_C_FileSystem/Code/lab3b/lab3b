@@ -1,0 +1,8 @@
+#NAME: Hanif Leoputera Lim
+#EMAIL: hanifleoputeralim@gmail.com
+#ID: 504971751
+
+
+python lab3b.py $1
+
+exit $?

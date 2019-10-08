@@ -1,0 +1,53 @@
+Lab 3
+Name: Hanif Leoputera Lim
+UID : 504971751
+
+`export LC_ALL='en_US.UTF-8'`
+1. `wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz`
+	-- Get coreutils
+2. `wget ftp://ftp.gnu.org/gnu/coreutils/coreutils-8.29.tar.xz.sig`
+	-- Get Signature
+3. `wget https://ftp.gnu.org/gnu/gnu-keyring.gpg`
+	-- Get GNU key ring
+4. `tar -xvf coreutils-8.29.tar.xz`
+	-- Un-gzip the Coreutils tarball
+5. `gpg --verify --keyring ./gnu-keyring.gpg coreutils-8.29.tar.xz.sig`
+I got this output:
+gpg: Signature made Wed Dec 27 10:29:05 2017 PST using RSA key ID 306037D9
+gpg: /u/eng/class/classfra/.gnupg/trustdb.gpg: trustdb created
+gpg: Good signature from "P�draig Brady <P@draigBrady.com>"
+gpg:                 aka "P�draig Brady <pbrady@redhat.com>"
+gpg:                 aka "P�draig Brady <pixelbeat@gnu.org>"
+gpg: WARNING: This key is not certified with a trusted signature!
+gpg:          There is no indication that the signature belongs to the owner.
+Primary key fingerprint: 6C37 DC12 121A 5006 BC1D  B804 DF6F D971 3060 37D9
+6. 	`cd coreutils-8.29`
+	`vim INSTALL`
+	-- Go into the un-tarred coreutils directory and look into "INSTALL" and read briefly into the "--prefix" section
+7. `./configure --prefix=$pwd/coreutilsInstall`
+	-- Install coreutils into coreutilsInstall directory
+	`make`
+	`make install`
+8. `vim la`
+	-- Make a new command to represent `ls -a`
+	Write command:
+	#!/bin/sh
+	exec $(pwd)/coreutils-8.29/coreutilsInstall/bin/ls -a "$@"
+
+	`chmod +x la`
+	-- Make new command an executable
+
+	Run the command `./la -A` to reproduce the bug.
+	Here's the output:
+	.   coreutils-8.29	   coreutils-8.29.tar.xz.sig  la
+	..  coreutils-8.29.tar.xz  gnu-keyring.gpg
+9.	`cd coreutils-8.29`
+	`vim patch_file`
+	-- I copied the patch into this file above
+	`patch -p1 < patch_file`
+	-- Run this command to replace the segment of the code that needs to be patched.
+10. `cd src`
+	`ls -aA`
+	-- The . and .. didn't appear. Thus, patch worked.
+	'vim tests/ls/a-option.sh'
+	Changed 

@@ -1,0 +1,68 @@
+Name: Hanif Leoputera Lim
+UID: 504 971 751
+Homework 9
+
+2. `git checkout v3.0 -b quote`
+-- Check out of v3.0 and into a new "quote" branch
+
+3.`patch -p1 < ../quote-3.0-patch.txt`
+-- Apply patch so all ` is '
+
+5. Use Emacs "C-x 4 a" to go into a changelog buffer. 
+   `emacs src/cmp.c`
+   `emacs src/diff.c`
+   `emacs src/diff3.c`
+   `emacs src/dir.c`
+   `emacs src/sdiff.c`
+   `emacs src/util.c`
+  -- And insert each file's respective change log from the original patch, quote-3.0-patch.txt.
+
+ 6. `git add .`
+ -- To stage all files that are modified
+ `git commit -F ChangeLog`
+ -- Use the -F as we only want to commit the ChangeLog file specifically
+
+ 7. `git format-patch -1 --stdout > formatted-patch.txt`
+ -- Use the same command as in lab to generate a new patch file.
+
+ 8. `git checkout -b partner`
+ -- Checkout of quote and into a new branch, "partner"
+ -- scp partner's patch, which he (Varun Narayanan) send to me.
+
+ `git am < ../partner-patch.txt`
+ `git log`
+-- Use the command above to check if patch was done properly.
+-- Below was stdout-ed. This show that the patch was success.
+From: Varun Naryanan <varun.narayanan1729@gmail.com>
+Date: Fri, 7 Dec 2018 19:35:50 -0800
+Subject: [PATCH] 2018-12-06  Varun Narayanan Chakravarthy  <chakrava@lnxsrv05.seas.ucla.edu>
+
+	* src/cmp.c: Changed backtick (`) quoted char strings constants in source code to an apostrophe (') quoted one.
+	* src/diff.c: Changed backtick (`) quoted char strings constants in source code to an postrophe (') quoted one.
+	* src/diff3.c: Changed backtick (`) quoted char strings constants in source code to an apostrophe (') quoted one.
+	* src/dir.c: Changed backtick (`) quoted char strings constants in source code to an apostrophe (') quoted one.
+	* src/sdiff.c: Changed backtick (`) quoted char strings constants in source code to an apostrophe (') quoted one.
+	* src/util.c: Changed backtick (`) quoted char strings constants in source code to an apostrophe (') quoted one.
+`./bootstrap`
+`patch -p0 < patch_GNULIB`
+-- Apply the patch before running ./configure.
+`./configure`
+`make` 
+`make check`
+-- It works
+
+9. Change back to my quote branch
+`git checkout quote`
+`make distdir`
+`cd diffutils*`
+`emacs ChangeLog`
+-- My commit comments is written there, so it works.
+
+10. Get screenshot
+`ssh -X classfra@lnxsrv06.seas.ucla.edu`
+`cd ~eggert/src/gnu/emacs`
+`gitk`
+
+
+
+

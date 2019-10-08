@@ -1,0 +1,226 @@
+Name: Hanif Leoputera Lim
+UID: 504 971 751
+Lab 9
+
+
+1. `mkdir assign9`
+   `cd assign9`
+-- Make and go into my assign 9 directory
+`git clone https://git.savannah.gnu.org/git/diffutils.git`
+-- Clone the diffutils repository into my working directory
+`cd diffutils`
+
+2. `git log > ../git-log.txt`
+-- Make the git-log.txt, which shows all the commits.
+
+3. `git tag > ../git-tags.txt`
+-- Similarly for git-tags.txt, which shows the tags used by diffutils.
+
+4. `git log --grep "maint: quote 'like this' or "`
+-- Find the commit that we want by grepping the keywords provided.
+-- This command output the commit with commit hash "62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f"
+`git format-patch --stdout -1 62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f > quote-patch.txt`
+-- Generate a patch using this command. "-1" is used as only the "62ca21c8c1a5aa3488589dcb191a4ef04ae9ed4f" commit is needed. "--stdout" is specified as we want the actual content of the patch, not just the name. This is so we can re-direct it into quote-patch.txt.
+
+5. `git checkout v3.0`
+-- From the git-tags.txt, v3.0 is the symbolic name for Version 3. So, now we have a local repository of diffutils when it was in Version 3.
+
+6. `patch -p1 < ../quote-patch.txt`
+-- Looking in the quote-patch file, the document you want patched up is in the doc directory and is referred to as a/doc/diffutils.texi. So, one slash has to be removed hence "-p1" is used.
+
+7. `git status`
+-- To check where we are so far.
+Output:
+# HEAD detached at v3.0
+# Changes not staged for commit:
+#   (use "git add <file>..." to update what will be committed)
+#   (use "git checkout -- <file>..." to discard changes in working directory)
+#
+#	modified:   NEWS
+#	modified:   README
+#	modified:   TODO
+#	modified:   doc/diagmeet.note
+#	modified:   ms/config.bat
+#	modified:   ms/config.site
+#	modified:   po/en.po
+#	modified:   src/analyze.c
+#	modified:   src/cmp.c
+#	modified:   src/context.c
+#	modified:   src/diff.c
+#	modified:   src/diff.h
+#	modified:   src/diff3.c
+#	modified:   src/dir.c
+#	modified:   src/ifdef.c
+#	modified:   src/io.c
+#	modified:   src/sdiff.c
+#	modified:   src/side.c
+#	modified:   src/system.h
+#	modified:   src/util.c
+#	modified:   tests/help-version
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#	0001-maint-quote-like-this-or-like-this-not-like-this.patch
+#	NEWS.orig
+#	README-hacking.orig
+#	README-hacking.rej
+#	README.orig
+#	README.rej
+#	cfg.mk.orig
+#	cfg.mk.rej
+#	ms/config.site.orig
+#	quote-patch.txt
+#	src/cmp.c.orig
+#	src/context.c.orig
+#	src/diff.c.orig
+#	src/diff.c.rej
+#	src/diff.h.orig
+#	src/diff3.c.orig
+#	src/diff3.c.rej
+#	src/dir.c.orig
+#	src/sdiff.c.orig
+#	src/system.h.orig
+#	src/util.c.orig
+#	tests/help-version.orig
+no changes added to commit (use "git add" and/or "git commit -a")
+
+-- Many files are modified even those that aren't source codes. 
+9. Thus, all non-C files will need to be reverted back 
+`emacs NEWS`
+`emacs README`
+`emacs TODO`
+`emacs doc/diagmeet.note`
+`emacs ms/config.bat`
+`emacs ms/config.site`
+`emacs po/en.po`
+`emacs src/diff.h` 
+`emacs src/system.h`
+`emacs tests/help-version`
+-- For all the commands above, in emacs, type "C-x v u" (vc-revert) to discard the change, type "yes" and then save and exit by typing "C-x C-c".
+
+For all the C files, we need to revert all comment hunks.
+`emacs src/analyze.c`
+`emacs src/cmp.c` 
+`emacs src/context.c` 
+`emacs src/diff.c`
+`emacs src/diff3.c`
+`emacs src/dir.c` 
+`emacs src/ifdef.c` 
+`emacs src/io.c`
+`emacs src/sdiff.c` 
+`emacs src/side.c` 
+`emacs src/util.c`
+-- For all the command above, in emacs, we open the vc-diff buffer by typing "C-x v =" then we revert the comment changes by typing "C-u C-c C-a" (opposite to the apply hunk command C-c C-a) and type "y" to green light the reversion. Just revert comments. Exit using "C-x C-c" and save.
+
+10. There are two reject files src/diff.c.rej and src/diff3.c.rej. Changes that rejected as specified in the .rej file will be done manually in the diff.c and diff3.c respecitively. Basically, all ` to '. There is 1 line to change in diff3.c and there are 5 lines in diff.c.
+
+11. `git clean -f -n`
+-- To forcefully, remove all untracked files.
+
+12. `git status`
+-- There are only 6 files are modified, as mentioned by the spec.
+#	modified:   src/cmp.c
+#	modified:   src/diff.c
+#	modified:   src/diff3.c
+#	modified:   src/dir.c
+#	modified:   src/sdiff.c
+#	modified:   src/util.c
+`git diff > ../quote-3.0-patch.txt`
+`wc -l quote-3.0-patch.txt`
+-- There are 326 lines on the patch, which match the 300-400 range given by the spec.
+
+13. `./bootstrap`
+	-- Put the patch given into a text document, "patch_GNULIB"
+	`patch -p0 < patch_GNULIB`
+	-- Apply the patch before running ./configure.
+	`./configure`
+	`make` 
+	`make check`
+	-- All these commands can be found from reading the README-hacking
+
+14. We tried running
+	./src/diff . - 
+	./src/diff --help
+	-- All the output is in '' instead of `. Thus, it showed that it works.
+
+15. `cd ..`
+	`mkdir diffutils-3.0`
+	`mkdir diffutils-3.0-patch`
+	-- Make a directory to store original diffutils 3.0 & the patched one respectively
+	`git clone ~eggert/src/gnu/diffutils diffutils-3.0-ori`
+	`cd diffutils-3.0`
+	`cp ./src/*.c ../diffutils-3.0`
+	-- Download diffutils and copy all the c code into diffutils-3.0-ori directory
+	`cp ./diffutils/src/*.c ./diffutils-3.0-patch`
+	-- Copy all patched c code in to diffutils-3.0-patch directory
+	`cd ..`
+	`./diffutils/src/diff -pru ./diffutils-3.0 ./diffutils-3.0-patch > quote-3.0-test.txt`
+	-- Compare source files of the original diffutils and patched one, using the command given.
+	`diff -u quote-3.0-test.txt diffutils/quote-3.0-patch.txt | wc -l`
+
+	The differences are pretty innocuous it mostly have to do with ` and ', which doesn't affect the behavior (a sample output is shown below). There are 220 lines differences.
+
++@@ -286,12 +286,12 @@ check_child_status (int werrno, int wstatus, int max_ok_status,
++     {
++       error (0, werrno,
++ 	     _(status == 126
++-	       ? "subsidiary program `%s' could not be invoked"
+++	       ? "subsidiary program '%s' could not be invoked"
++ 	       : status == 127
++-	       ? "subsidiary program `%s' not found"
+++	       ? "subsidiary program '%s' not found"
++ 	       : status == INT_MAX
++-	       ? "subsidiary program `%s' failed"
++-	       : "subsidiary program `%s' failed (exit status %d)"),
+++	       ? "subsidiary program '%s' failed"
+++	       : "subsidiary program '%s' failed (exit status %d)"),
++ 	     subsidiary_program, status);
++       exiterr ();
++     }
++@@ -572,9 +572,9 @@ main (int argc, char *argv[])
++   if (argc - optind != 2)
++     {
++       if (argc - optind < 2)
++-	try_help ("missing operand after `%s'", argv[argc - 1]);
+++	try_help ("missing operand after '%s'", argv[argc - 1]);
++       else
++-	try_help ("extra operand `%s'", argv[optind + 2]);
+++	try_help ("extra operand '%s'", argv[optind + 2]);
++     }
++
++   if (! output)
++@@ -747,7 +747,7 @@ main (int argc, char *argv[])
++ 	exit (WEXITSTATUS (wstatus));
++       }
++     }
++-  return EXIT_SUCCESS;			/* Fool `-Wall'.  */
+++  return EXIT_SUCCESS;			/* Fool '-Wall'.  */
++ }
++
++ static void
++diff --git a/src/util.c b/src/util.c
++index 3be03e9..d18bf38 100644
++--- a/src/util.c
+++++ b/src/util.c
++@@ -298,12 +298,12 @@ finish_output (void)
++       if (status)
++ 	error (EXIT_TROUBLE, werrno,
++ 	       _(status == 126
++-		 ? "subsidiary program `%s' could not be invoked"
+++		 ? "subsidiary program '%s' could not be invoked"
++ 		 : status == 127
++-		 ? "subsidiary program `%s' not found"
+++		 ? "subsidiary program '%s' not found"
++ 		 : status == INT_MAX
++-		 ? "subsidiary program `%s' failed"
++-		 : "subsidiary program `%s' failed (exit status %d)"),
+++		 ? "subsidiary program '%s' failed"
+++		 : "subsidiary program '%s' failed (exit status %d)"),
++ 	       pr_program, status);
++     }
++
+
+
+
+

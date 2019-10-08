@@ -1,0 +1,221 @@
+\documentclass[11pt]{article}
+ \usepackage{minted}
+
+\usepackage{amsmath}
+\usepackage{xcolor}
+ 
+ 
+\newcommand{\comment}[1]{}
+ 
+\usepackage[a4paper]{geometry}
+\usepackage[myheadings]{fullpage}
+\usepackage{fancyhdr}
+%\usepackage{fourier} % this is for the font -- see whether this is nicer than default
+\usepackage[english]{babel}
+
+\newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+
+
+\def\E{{\rm E}}
+\def\Var{{\rm Var}}
+\def\Cov{{\rm Cov}}
+
+
+\usepackage{fancyvrb}
+
+\author{Wilson Jusuf, 404997407}
+
+
+\begin{document}
+
+\title{ \normalsize \textsc{Spring 2019 CS118}
+		\\ [2.0cm]
+		\HRule{0.5pt} \\
+		\LARGE \textbf{Project 1 - BSD Sockets Webserver}
+		\HRule{2pt} \\ [0.5cm]
+		\normalsize \today \vspace*{5\baselineskip}}
+
+\date{}
+
+\author{
+        Wilson Jusuf\\
+		Student ID: 404997407\\
+		University of California, Los Angeles\\\\
+        Hanif Leoputera Lim\\
+		Student ID: 504971751\\
+		University of California, Los Angeles}
+
+\maketitle
+\newpage
+
+\section{high-level description of server}
+
+First, we call the typical BSD system calls to initialize the server:
+
+\begin{minted}[ breaklines, breakanywhere, tabsize=1, frame=single]{c}
+     sockfd = socket(AF_INET, SOCK_STREAM, 0);
+     setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &option, sizeof(option));
+     bind(........);
+\end{minted}
+Then, we start to accept HTTP connections one by one in a while loop. 
+The following pseudocode describes how we process an individual HTTP request:
+
+%\begin{minted}[ breaklines, tabsize=1, frame=single, fontsize=10pt]{c}
+\begin{minted}[ breaklines, breakanywhere, tabsize=1, frame=single]{c}
+    // 1. read into a buffer.
+    read(readbuf);
+
+
+    // 2. parse in http request to struct and check if http request was in an invalid format.
+    parse_success = parse_http_request(&http_req_struct)      
+    if (!parse_success) 
+        respond_with_status(400) // return 400 bad request
+
+
+    // 3. check if method is a GET
+    if (http_req_struct.method != "GET")
+        respond_with_status(405) // return 405 method not allowed
+    
+
+    // 4. try to open the file. 
+    fildes = open_file(http_req_struct.endpoint_resource);
+    if (fildes is error) 
+        write_fail(/* based on errno value. ENOENT = 404, EACCES = 403 */)
+        
+
+    // 5. check if mimetype is supported. If not, return error. If not, return error
+    if(!mimetype_is_supported(http_req_struct.endpoint_resource))
+        write_fail(415); // 415 media not supported
+
+
+    // 6. get file length for content_length header. See if this fails.
+    content_len = get_filelength(fildes); // uses stat syscall
+    if(content_len error)
+        write_fail(500) // 500 Internal Server Error
+        
+
+    // 7. craft our response header, without data. send it.
+    get_200_OK_response_header(res_buff);
+    write(connfd, res_buff);
+
+
+    // 8. send file data to receiver.
+    while (file reading still has data) {
+            write(connfd, data) // send data to client.
+    }
+
+
+    // 9. Finally, close resources and connections. NOTE: they are also closed when we return early as well.
+    close(connfd);
+    close(fildes);
+\end{minted}
+
+Notes:
+- we actually use \texttt{writev()} system call to issue both header + data writes to receiver to minimize syscall overhead.
+
+
+\section{Difficulties faced}
+The difficulty lied mostly on understanding the BSD abstractions on managing a webserver.
+After reading the man pages, it seemed clear that the abstractions were almost like opening files and file descriptors, as well
+as their associated system calls like \texttt{read()} and \texttt{write()}. It was actually simple.
+
+\section{Manual - how to compile and run}
+\begin{minted}[breaklines, breakanywhere, tabsize=1, frame=single]{bash} 
+# first, make the webserver executable:
+$ make
+
+# then run default:
+$ ./webserver  # this runs on port 7900 by default
+
+# or, by specifying port option,
+$ ./webserver -p 9500 # run on port 9500
+\end{minted}
+
+\section{Sample outputs and explanation}
+
+PART A:
+Upon receiving a request, the request header is outputted
+\begin{minted}[breakanywhere, breaklines, frame=single]{text}
+GET /test.txt HTTP/1.1
+Host: localhost:7900
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;q=0.9
+\end{minted}
+Definitions are included for the headers above:
+\begin{itemize}
+  \item \texttt{GET}: This line has the request method (GET, POST, etc..), the path to the resource and the protocol type and version.
+  \item \texttt{HOST}: The server's name -- in our case it's localhost, running on port 7900
+  \item \texttt{Connection}: This specify the requested lifetime of the connection
+  \item \texttt{User-agent}: This tells the server client's application type.In our case, it's a Mozilla browser, running on a Mac, which is powered by Intel.
+  \item \texttt{Accept}: Describe what media/content client accept. Client accepts html, xml, webp and apng, in our case.
+  \item \texttt{Accept-Encoding}: Specifies the encoding of the media accepted by client.
+  \item\texttt{Accept-Language}: Specifies the accepted languages of the returned media.
+\end{itemize}
+
+PART B - requesting test.txt
+\begin{minted}[breakanywhere, breaklines, frame=single]{text}
+GET /test.txt HTTP/1.1
+Host: localhost:7900
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;q=0.9
+\end{minted}
+The client issued a GET request for test.txt in the server. Upon checking that 
+\begin{itemize}
+    \item the requested resource's mimetype is a valid mimetype,
+    \item the resource exists in the server, 
+    \item the server has access rights to the resource, 
+\end{itemize}
+
+the server then sends it back to the user with the following:
+
+\begin{minted}[breakanywhere, breaklines, frame=single]{text}
+HTTP/1.1 200 OK
+Date: Sat, 27 Apr 2019 04:07:28 UTC
+Content-Type: text/plain; charset=utf8
+Content-Length: 11
+
+(.... data here ....)
+\end{minted}
+
+The first line shows the protocol type and version (HTTP/1.1) and the response code "200 OK", implying that the mimetype is valid and resource is found.
+\begin{itemize}
+  \item \texttt{Date}: specify the time the server sent the resource to the client.
+  \item \texttt{Content-Type}: tells the client the type of file being returned
+  \item \texttt{Content-Length}: the total size of the file sent.
+\end{itemize}
+
+The content of test.txt was diff-ed and is identical to the server's.
+
+Similarly, when a client requests test.gif with the following:
+\begin{minted}[breakanywhere, breaklines, frame=single]{text}
+GET /test.gif HTTP/1.1
+Host: localhost:7900
+Connection: keep-alive
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.103 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3
+Accept-Encoding: gzip, deflate, br
+Accept-Language: en-US,en;q=0.9
+\end{minted}
+
+The server sends back test.gif along with the following header:
+\begin{minted}[breakanywhere, breaklines, frame=single]{text}
+HTTP/1.1 200 OK
+Date: Sat, 27 Apr 2019 04:34:24 UTC
+Content-Type: image/gif
+Content-Length: 121606
+
+(... gif here...)
+\end{minted}
+
+\end{document}

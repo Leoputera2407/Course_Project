@@ -1,0 +1,9 @@
+NAME: Hanif Leoputera Lim
+EMAIL: hanifleoputeralim@gmail.com
+ID: 504971751
+
+lab3b.py: Source file that takes in csv and see if there are inconsistencies in the summary
+
+Makefile: Used to create the executable, tarball and test scripts
+
+README: Description of files submitted

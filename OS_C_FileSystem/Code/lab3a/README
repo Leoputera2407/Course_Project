@@ -1,0 +1,12 @@
+NAME: Hanif Leoputera Lim
+EMAIL: hanifleoputeralim@gmail.com
+UID: 504971751
+
+1. Description:
+	lab3a.c: Source file that read fs images and output a csv file that summarizes the fs.
+	Makefile: Used to build the executables, dist and clean it.
+	README: Descriptions of files included.
+2. References:
+	1. TutorialPoint for GMT Time
+	2. Ext2 Website (http://www.nongnu.org/ext2-doc/ext2.html#I-BLOCK)
+

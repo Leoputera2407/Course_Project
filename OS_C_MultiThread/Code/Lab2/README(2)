@@ -1,0 +1,102 @@
+NAME: Hanif Leoputera Lim
+EMAIL: hanifleoputeralim@gmail.com
+ID: 504971751
+
+
+Tarball contains:
+1. README:
+	Descriptions of files include and answers to question
+2. Makefile:
+	Used to build the executables, graphs, csv files and tarball
+3. output_list.sh and output_add.csv
+	Used to call executable and create  the csv. Called by using "make tests"
+4. Source Files: lab2_add.c lab2_list.c SortedList.c SortedList.h
+	lab2_add.c - C program to create executable  and create the desired add.csv output
+	lab2_list.c - C program to run executable and create the desired list.csv output
+	SortedList.c - C module to call insert, delete, lookup and length for the SortedList Object
+	SortedList.h - header files for SortedList.c 
+5. 9 .png graphs
+        lab2_add-1.png -  threads and iterations required to generate a failure 
+	(with and without yields)
+	lab2_add-2.png -  average time per operation with and without yields.
+	lab2_add-3.png -  average time per (single threaded) operation vs. the 
+	number of iterations.
+	lab2_add-4.png -  threads and iterations that can run successfully with 
+	yields under each of the synchronization options.
+	lab2_add-5.png -  average time per (protected) operation vs. the number 
+	of threads.
+	lab2_list-1.png -  average time per (single threaded) unprotected 
+	operation vs. number of iterations (illustrating the correction of the per
+	-operation cost for the list length).
+	lab2_list-2.png -  threads and iterations required to generate a failure 
+	(with and without yields).
+	lab2_list-3.png -  iterations that can run (protected) without failure.
+	lab2_list-4.png -  (length-adjusted) cost per operation vs the number of 
+	threads for the various synchronization options.
+6. 2 .csv files: 
+	lab2_add.csv -  contains all of results for all of the Part-1 tests
+	lab2_list.csv -  contains all of results for all of the Part-2 tests.
+7. 2 .gp files: script to generate graphs using gnuplot
+	lab2_add.gp
+	lab2_list.gp
+
+
+QUESTION 2.1.1 - causing conflicts:
+Why does it take many iterations before errors are seen?
+Why does a significantly smaller number of iterations so seldom fail?
+
+	Creating threads ie pthread_create() is expensive as it involves syscalls. However, the time to execute the process per thread is fast. 
+	Small iteration seldom fails as there are no race condition, while many iterations can lead to race condition. 
+	Let t be the time taken for a thread to finish executing all its instructions ie loops,etc.
+	Let c be the time taken to create threads.
+	If c>t, there will be no race condition new threads are created after existing threads finished executing. When iteration is small, t would be small as loop would have finished faster. Thus, this explains why smaller iterations seldom fail.
+	However, when iteration is huge, t would be longer too, as such c < t. There will be times, when threads are created before a thread finished executing, and multiple threads would mutate the shared counter variable ie race condition. That is why as the number of iteration increases, the chances of having a race condition, hence errors, increaseas.
+
+QUESTION 2.1.2 - cost of yielding:
+(1)Why are the --yield runs so much slower?Where is the additional time going?
+ 	 When --yield is invoked, sched_yield() would be called. Thus, operations that are yielded are forced to release the CPU and the CPU context swithc to another process. This context switches has a huge time overhead, making them run slower.
+
+(2)Is it possible to get valid per-operation timings if we are using the --yield option?If so, explain how. If not, explain why not.
+	 No, we are using wall clock. Multiple threads may be yielded and are running at the same time. There's no way to determine the fraction of the wall time due to context switching. Thus, getting per-operation timing is not possible.
+
+
+QUESTION 2.1.3 - measurement errors:
+(1)Why does the average cost per operation drop with increasing iterations?
+	Avg cost per operation = total time / number of operations, where total time = run time + thread creation overhead. In small iteration, thread creation takes a huge chunk of the time and since number of operations is small, avg cost/operation is high. But, in larger iterations, the thread creation overhead is smaller realtive to the huge number of operations due to high iterations. Thus, average cost of operation drop with increasing iterations.
+
+(2)If the cost per iteration is a function of the number of iterations, how do we know how many iterations to run (or what the "correct" cost is)?
+	As we can see plot-2 and plot-3, the cost of operation is decreasing exponentially against number of iterations. The correct cost is can be seen when the function becomes stable and coverges to a value. This is because when the number of iterations is sufficiently large, the thread creation overhead becomes amortized so small that we can ignore it. This value is a good estimate for the "correct cost"
+
+
+QUESTION 2.1.4 - costs of serialization:
+(1) Why do all of the options perform similarly for low numbers of threads?
+	When thread number is small, race condition/lock contention rarely happen.Thus, performance difference among options are not significant.
+
+(2)Why do the three protected operations slow down as the number of threads rises?
+	When thread number increases, the chances of race condition and lock contention also rises. Thus, more operations are needed to protect shared data, which slows down the program.
+
+
+QUESTION 2.2.1 - scalability of Mutex
+Compare the variation in time per mutex-protected operation vs the number of threads in Part-1 (adds) and Part-2 (sorted lists).
+(1)Comment on the general shapes of the curves, and explain why they have this shape.
+
+	In Part-1, the curve increases at a decreasing rate until it eventually plateaus. The gradient at each point is comparatively smaller compared to Part-2's. This is because of context switches. Context switches are expensive and ever increasding and thread creation has an overhead. When there are more threads, thread creation overhead is amortized, such that its decrease is greater than the increase from context switches, as seen from the graph.
+
+	In Part-2, the curve goes up almost linearly. Gradient is seemingly higher at each point compared to Part-1. This is because as the number of thread rises, more threads are competing for the lock. This thread contention increases cost.  Part-1 doesn't suffer from this issue as much because execution time for the thread operation is relatively short, and probably would have finished by the time a new thread is created, hence less contention. 
+
+(2)Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+	Part-2 has a higher rate of increases than Part-1. Part-2 has many more operations ie more expensive than Part-1. Lock is held longer by Part-2's thread than Part-1, and many more threads would have been spawned in the interim. As a result, lock contention is much more common in Part-2 and the cost for Part-2 is higher as the number of threads inceases. This far outweight the amortization of thread creation overhead due to higher thread count. As a result, Part-2 increases almost linearly with the number of threads and Part-1 increases at a decreasing rate.
+
+
+
+QUESTION 2.2.2 - scalability of spin locks
+
+Compare the variation in time per protected operation vs the number of threads for list operations protected by Mutex vs Spin locks. 
+(1)Comment on the general shapes of the curves, and explain why they have this shape.
+	Both curves goes up. As the number of threads increases, there will be more thread contention which increases the cost. Thus, why the time increases with number of threads.
+
+(2)Comment on the relative rates of increase and differences in the shapes of the curves, and offer an explanation for these differences.
+	Both curves increases, but spin-lock increases at a higher rate. This is because spin-lock keeps polling to check if the process is completed. This is costly. For mutex, on the otherhand, thread that didn't get lock were put to sleep and so it didn't use CPU time, lowering the cost
+	
+
+

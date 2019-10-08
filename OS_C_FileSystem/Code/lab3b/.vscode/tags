@@ -1,0 +1,34 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+Dirent	../lab3b.py	/^class Dirent:$/;"	kind:class	line:54
+Group	../lab3b.py	/^class Group:$/;"	kind:class	line:26
+Indirect	../lab3b.py	/^class Indirect:$/;"	kind:class	line:63
+Inode	../lab3b.py	/^class Inode:$/;"	kind:class	line:37
+Superblock	../lab3b.py	/^class Superblock:$/;"	kind:class	line:16
+__init__	../lab3b.py	/^    def __init__(self, entry):$/;"	kind:member	line:17
+__init__	../lab3b.py	/^    def __init__(self,entry):$/;"	kind:member	line:27
+__init__	../lab3b.py	/^    def __init__(self,entry):$/;"	kind:member	line:38
+__init__	../lab3b.py	/^    def __init__(self,entry):$/;"	kind:member	line:55
+__init__	../lab3b.py	/^    def __init__(self,entry):$/;"	kind:member	line:64
+bfree_list	../lab3b.py	/^bfree_list= []$/;"	kind:variable	line:6
+block_allocated	../lab3b.py	/^block_allocated = {} #Mapping block_num to {block_num,inode,offset} to check duplicates$/;"	kind:variable	line:12
+block_checker	../lab3b.py	/^def block_checker(FIRST_VALID_BLOCK, LAST_VALID_BLOCK, inode_num, block_num, logical_offset, level):$/;"	kind:function	line:72
+block_consistency_audit	../lab3b.py	/^def block_consistency_audit():$/;"	kind:function	line:92
+block_duplicated	../lab3b.py	/^block_duplicated = set() #Keep track of block that are duplicated.$/;"	kind:variable	line:13
+check_duplicates	../lab3b.py	/^def check_duplicates():$/;"	kind:function	line:85
+csv	../lab3b.py	/^import sys,csv,math$/;"	kind:namespace	line:2
+dirent_list	../lab3b.py	/^dirent_list= []$/;"	kind:variable	line:9
+group	../lab3b.py	/^group = None$/;"	kind:variable	line:5
+ifree_list	../lab3b.py	/^ifree_list= []$/;"	kind:variable	line:7
+indirect_list	../lab3b.py	/^indirect_list= []$/;"	kind:variable	line:10
+inode_and_dir_audit	../lab3b.py	/^def inode_and_dir_audit(first_inode_pos, total_inode_count):$/;"	kind:function	line:122
+inode_list	../lab3b.py	/^inode_list= []$/;"	kind:variable	line:8
+lab3b.py	../lab3b.py	1;"	kind:file	line:1
+main	../lab3b.py	/^def main():$/;"	kind:function	line:147
+math	../lab3b.py	/^import sys,csv,math$/;"	kind:namespace	line:2
+super_block	../lab3b.py	/^super_block = None$/;"	kind:variable	line:4
+sys	../lab3b.py	/^import sys,csv,math$/;"	kind:namespace	line:2

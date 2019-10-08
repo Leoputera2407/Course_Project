@@ -1,0 +1,29 @@
+Name: Hanif Leoputera Lim
+UID: 504 971 751
+HW8
+
+1. The data is siphoned along the network using ssh: the data are encrypted. 
+So, even if they can snoop the bytes, they can't read it unless they know the recipient's private key. 
+Private key are never transmissed through the network, presumably only the recipient knows it.
+Thus, the observing party can't decrypt the data, hence it's secured.
+
+If the keyboard is tapped, the observing party could see our keystrokes. 
+The security may be compromised. 
+For password-based authentication, when we ssh into a host server, we have to type in the cleartext password that was agreed on in the server-client setup.
+They could then use this password and security will be compromised. 
+However, if a public-private key authentication with pass-phrase is used, they could log our passphrase. 
+Acquiring that passphrase, though, is useless as they don't have access to the private key which is saved on the recipient's computer. 
+If it's pass-phrase-less, security is even more secured: nothing important are logged.
+
+If they controlled our USB, they could access .ssh/id_rsa (if access is not restricted) and get our private key. 
+Security is compromised as they could access whatever with that private key.
+
+2. gpg --verify doesn't know who send the file, they just check that the hashed data and hashed decrypted signature are the same. 
+So, a man in the middle can alter the file, re-sign it with their own private key, and replace the original public key with their own.
+The recipient would verify that the hash is consistent with the signature without realizing that someone actually altered the files.
+
+This problem could be solved by publishing the public keys on a trusted third party service which could verify that no tampering was done.
+
+
+
+

@@ -1,0 +1,65 @@
+Comparing sfrob, sfrobu & sfrobs performance
+
+Comparing 5 lines:
+sfrob:
+	real	0m0.019s
+	user	0m0.002s
+	sys		0m0.003s
+
+sfrobu: 
+	real	0m0.002s
+	user	0m0.002s
+	sys		0m0.002s
+
+sfrobu -f:
+	real	0m0.003s
+	user	0m0.000s
+	sys		0m0.005s
+
+sfrobs:
+	real	0m0.006s
+	user	0m0.002s
+	sys		0m0.009s
+
+sfrobs -f:
+	real	0m0.006s
+	user	0m0.002s
+	sys		0m0.009s
+
+Comparing 100,000 lines:
+
+sfrob:
+	real	0m0.377s
+	user	0m0.106s
+	sys		0m0.253s
+
+sfrobu:
+	real	0m0.479s
+	user	0m0.082s
+	sys		0m0.389s
+
+sfrobu -f:
+	real	0m0.475s
+	user	0m0.092s
+	sys		0m0.382s
+
+sfrobs:
+	real	0m0.087s
+	user	0m0.006s
+	sys		0m0.068s
+
+sfrobs -f:
+	real	0m0.084s
+	user	0m0.004s
+	sys		0m0.069s
+
+
+-- sfrob is clearly much faster than sfrobu. Using strace, we can see why. Sfrob does fewer operations because getchar and putchar get chunks of data; sfrobu, on the otherhand, it does more operation because my buffer for it was smaller than a getchar/putchar. Therefore, sfrobu is slower.
+-- However, sfrobs is much faster than sfrob because in bash script every command has its own process, processing the input parallely for every command, making it faster than sfrob.
+-- The "-f" flag doesn't really affect the speed.
+So, performance is:
+sfrobs> sfrob > sfrobu, where the "-f" affect the performance minimally.
+
+
+
+

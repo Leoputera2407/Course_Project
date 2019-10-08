@@ -1,0 +1,59 @@
+Name: Hanif Leoputera Lim
+UID: 504 971 751
+Lab 5 (CS 35L)
+
+1. Check version
+`which sort`
+/usr/local/cs/bin/sort
+`sort --version`
+Sort is sufficiently new to run parallelly.
+
+2. Create 2^24 random single-precision floatinf point numbers
+`od -An -f -N 67108864 | tr -s ' ' '\n' | sed '/^$/d' > filey.txt`
+od "-f" flag chooses only floating point numbers. "-N" allows us to specify the total number of bytes read. Flaoting points are 4 bytes long and we
+want 2^24 of them, so total size is 2^24 * 4 = 67,108,864 bytes. Pipe these numbers to `tr` and replace white spaces with new lines, then remove all leading
+white spaces with `sed`.
+
+`wc -l filey.txt`
+There are 16,777,216 lines, implying there are 16,777,216 numbers.
+
+3. Testing sort
+`time -p sort -g filey.txt > /dev/null`
+real 34.92
+user 194.88
+sys 1.00
+
+4. Testing with different parallel option numbers
+`time -p sort -g --parallel=1 filey.txt > /dev/null`
+real 199.03
+user 198.41
+sys 0.52
+
+
+`time -p sort -g --parallel=2 filey.txt > /dev/null`
+real 105.88
+user 199.83
+sys 0.41
+
+`time -p sort -g --parallel=4 filey.txt > /dev/null`
+real 55.13
+user 185.33
+sys 0.65
+
+`time -p sort -g --parallel=8 filey.txt > /dev/null`
+real 35.54
+user 193.14
+sys 1.01
+
+As we can see, the more threads there are the faster is the real execution time. This makes sense.
+We can also observe that as there are more threads, the sytem time increases. This also makes sense as more threads call more system calls. 
+There is no pattern to user time.
+Also, General sort and --parallel=8 sort seems to have similar real execution time. this is probably because core-utils sort is multi-threaded and run on max 8 threads. 
+
+
+
+
+
+
+
+

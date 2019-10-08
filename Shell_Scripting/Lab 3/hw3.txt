@@ -1,0 +1,29 @@
+Homework 3
+
+
+Q1. The patch improves the correctness, but not the performance. Only an if-else statement is changed, so it's still O(1), and then improvement in performance should be insignificant.
+
+Q2. Date format in coreutils follows US system; international users, who are more used to DDMMYY format, need to take note od the different date stamp when using coreutils.
+
+Q3. Running `./randline.py /dev/null`
+	Here's what's outputed:
+	 return seq[int(self.random() * len(seq))]  # raises IndexError if seq is empty
+	 IndexError: list index out of range
+
+	--/dev/null is an empty file. randline.py tries to index an empty file leading to an "out of range" error.
+
+Q4. Running `python3 randline.py`
+	You get this as an output:
+	  except IOError as (errno, strerror):
+                      ^
+	  SyntaxError: invalid syntax
+
+	--Tuple unpacking on exception object was removed in Python3. In Python3, a single parameter needs to be passed in explicitly into the exception, like this:
+		except IOError as err
+			 parser.error("I/O error({0}): {1}".format(err.errno, err.args[0]))
+
+
+
+
+
+

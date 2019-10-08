@@ -1,0 +1,130 @@
+Name: Hanif Leoputera Lim
+UID: 504 971 751
+Lab 4
+
+1. `wget https://web.cs.ucla.edu/classes/fall18/cs35L/assign/coreutils-with-bug.tar.gz`
+	-- Get the coreutils with bug
+2. `tar -xvzf coreutils-with-bug.tar.gz`
+	-- Unzip it
+3. `cd coreutils-with-bug/`
+	-- Enter the unzipped folder
+4. `./configure --prefix=$pwd/coreutilsInstall`
+	-- Install coreutils into coreutilsInstall directory
+5. 	Build it as-is	
+	`make`
+	--The error below was thrown:
+=================================================================	
+timens.h:2:5: error: conflicting types for 'futimens'
+ int futimens (int, char const *, struct timespec const [2]);
+     ^
+In file included from utimecmp.h:25:0,
+                 from utimecmp.c:25:
+/usr/include/sys/stat.h:373:12: note: previous declaration of 'futimens' was here
+ extern int futimens (int __fd, const struct timespec __times[2]) __THROW;
+            ^
+==================================================================            
+5. Create the patched version and then run it
+ 	`wget https://web.cs.ucla.edu/classes/fall18/cs35L/assign/coreutils.diff`
+ 	-- Apply patch
+ 	`patch -p0 < coreutils.diff`
+
+   -- Build with patch
+	`make`
+	`make install`
+   -- There are no error.
+   -- "futimens" is used already. The patch renamed a function to something else.  Thus, now you can make.
+   -- The patched coreutils are saved in the coreutilsInstall directory.
+
+7. Reproducing the bug
+	`vim bug.sh`
+	-- I created the script below.
+==================================================================	
+#!/bin/bash
+
+tmp=$(mktemp -d)
+cd $tmp
+touch -d '1918-11-11 11:00 GMT' wwi-armistice
+touch now
+sleep 1
+touch now1
+TZ=UTC0 ~/Desktop/35L/assign4/coreutils-with-bug/coreutilsInstall/bin/ls -lt --full-time wwi-armistice now now1
+cd ~/Desktop/35L/assign4
+rm -rf $tmp
+=====================================================================
+	`chmod +x bug.sh`
+	`./bug.sh`
+	-- Then, give it permission to execute and run it.
+	-- It outputted the message below:
+=====================================================================	
+-rw-r--r-- 1 classfra class 0 1918-11-11 11:00:00.000000000 +0000 wwi-armistice
+-rw-r--r-- 1 classfra class 0 2018-11-01 02:44:11.517615825 +0000 now1
+-rw-r--r-- 1 classfra class 0 2018-11-01 02:44:10.514581534 +0000 now
+=====================================================================
+	-- The "-lt" option sort by the most recent modified time.
+	-- There is a bug: wwi-armistice should be the third element, not the first ie the most recently modified. 
+
+8. Using debugger to stack trace the problem
+   `gdb ~/Desktop/35L/assign4/coreutils-with-bug/coreutilsInstall/bin/ls`
+   -- Run the gdb debugger inside the tmp file
+   (gdb) info functions
+   -- Guess that the problem could be in cmp_mtime function
+   (gdb) b cmp_mtime
+   (gdb) s
+   (gdb) s
+   --Here's the code cmp_mtime:
+   ================================
+    int diff = a.tv_sec - b.tv_sec;
+    return diff ? diff : a.tv_nsec - b.tv_nsec;
+   ================================
+   (gdb) info locals 
+   -- The diff is a very big negative number.
+   -- This is the problem. tv_sec formats the file lifetime to seconds. From 1918 to 2018, more than 2^31 seconds have elapsed. Since tmp file is a local Linux file system, it's on a signed 32-bit. 
+   —-[W]wi-armistice" lifetime in seconds would wrapover and be a big negative number.	
+   — Hence, "diff" for wwi-armistice comparison will be a negative number and the file system mistakenly recognized it to be the most recently modified file. 
+   -—That's why it was placed first, and not the third where it should be. 
+
+9. Making a new patch
+ 	`cd ..`
+ 	-- Move back out to my home directory
+ 	`cp -r coreutils-with-bug coreutils-with-bug-patched`
+ 	-- Copy the entire coreutils-with-bug directory
+ 	`cd coreutils-with-bug-patched/lib`
+ 	`vim timespec.h`
+ 	-- Go to the source file that contains cmp_mtime, and replace the code below:
+ 	----------
+ 	int diff = a.tv_sec - b.tv_sec;
+    return diff ? diff : a.tv_nsec - b.tv_nsec;
+    ++++++++++
+    if( a.tv_sec < b.tv_sec)
+        return -1;
+  	else if (a.tv_sec > b.tv_sec)
+        return 1;
+   return a.tv_nsec > b.tv_nsec ? 1: -1;
+
+ -- And I got the message:
+    ====================================== 
+     -rw-r--r-- 1 classfra class 0 2018-11-01 16:56:32.177943424 +0000 now1
+    -rw-r--rw-r--r-- 1 classfra class 0 2018-11-01 16:56:19.094503985 +0000 now
+    -rw-r--r-- 1 classfra class 0 1918-11-11 11:00:00.000000000 +0000 wwi-armistice
+    ======================================
+    -- The bug is now fixed.
+
+10. Making the diff file
+	`cd ~/Desktop/35L/assign4`
+	`diff -u coreutils-with-bug/lib/timespec.h coreutils-with-bug-patched/lib/timespec.h > lab4.diff`
+	-- Compare old files with patched one and get a diff file.
+
+11. Compare with SEASNET
+$ touch -d '1918-11-11 11:00 GMT' wwi-armistice
+$ touch now
+$ sleep 1
+$ touch now1
+$ TZ=UTC0 ls -lt --full-time wwi-armistice now now1
+======================================
+-rw-r--r-- 1 classfra class 0 1918-11-11 11:00:00.000000000 +0000 wwi-armistice
+-rw-r--r-- 1 classfra class 0 2018-11-01 17:04:29.303967869 +0000 now1
+-rw-r--r-- 1 classfra class 0 2018-11-01 17:04:15.673510114 +0000 now
+======================================
+--- SEASNET also has the bug. SEASNET NFS is on an unsigned 32-bit (2^32/ (365 * 24 * 3600 = 136 years). UNIX epoch time starts at 1970 Jan 1. 
+—- It can record time to 1970 + 136 = 2106. There will be an overflow for 1970 -1918 = 52 years overflow.
+—- So, the system would recognize www-armistice to be made at 2106 - 52 = 2054; hence, the most recently modified and place it as the first element instead of third.

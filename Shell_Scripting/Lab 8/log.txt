@@ -1,0 +1,102 @@
+Name: Hanif Leoputera Lim
+UID: 504 917 751
+Lab 8
+
+Partners:
+Name: Wilson Jusuf
+UID: 404 997 407
+Name: Varun Chakravarthy
+UID: 304 972 563
+
+1. Connect BeagleBone's USB to Computer
+2. Access BeagleBone on Computer and open "start.htm"
+3. Download the drivers required and restart computer
+4. Connecting to own access point: "Beardognetwork"
+   `ssh root@192.168.7.2`
+   `sudo connmanctl`
+   `enable wifi`
+   `scan wifi`
+   `services`
+   -- I saw BeardogNetwork's wifi id on that
+   `agent on`
+   `connect wifi_2cf7f1066ce9_426572646f676e6574776f726b_managed_psk`
+   -- Enter password and computer is now connected to BeardogNetwork
+5. Checking if IP address is correct
+	`exit`
+   `ifconfig wlan0`
+   -- IP address is correct
+6. Downloading Packages
+	`sudo apt-get update`
+	`sudo apt-get install xauth`
+	`sudo apt-get install xvfb`
+	`sudo apt-get install firefox-esr-l10n-en-gb`
+7. Change config files to allow X11 Forwarding
+	`vim /etc/ssh/ssh_config`
+	-- Change ForwardAgent and ForwardX11 to "yes"
+	`vim /etc/ssh/sshd_config files`
+	-- Change X11Forwarding to "yes"
+	`vim .ssh/config`
+	-- Created the new file required and put 'ForwardAgent yes' and 'ForwardX11 yes'.
+8. Check if openSSH is installed
+	`dpkg --get-selections | grep openssh`
+	-- openssh-server and openssh-client are both installed
+9. Server-Side
+	`sudo useradd -d /home/hanif -m hanif`
+	-- Create client "hanif"
+	`sudo passwd hanif`
+	-- Create password for client hanif
+	`cd /home/hanif`
+	-- Go to client's directory
+	`sudo mkdir .ssh`
+	-- Make folder to hold client's private keys
+	`sudo chown -R hanif:hanif .ssh`
+	-- Transfer ownership of .ssh from root to client
+	`sudo chmod 700 .ssh`
+	-- Change access, so only owner i.e. hanif can rwx in .ssh
+	`ifconfig wlan0`
+	-- Find server IP address for client (192.168.43.44)
+10. Client-Side
+	`ping 192.168.43.44`
+	-- Check if server is alive
+	Password Login:
+	`ssh hanif@192.168.43.44`
+	-- Enter server password and you're in the server
+
+	Pass-phrase (key-based auth) login:
+	`ssh-keygen`
+	-- Create private-public key pair and create a passphrase for it
+	`ssh-copy-id -i hanif@192.168.43.44`
+	-- Copy public key to server
+	`ssh hanif@192.168.43.44`
+	-- Enter the passphrase and you're in the server
+
+	Pass-phraseless (convenient) login:
+	`eval $(ssh-agent)`
+	-- Run the ssh-agent daemon, so it'll save the passphrase
+	`ssh-add`
+	-- Add credential to ssh-agent, so you don't have to type pass-phrase all the time
+	`ssh -X hanif@192.168.43.44`
+	-- And you're accessing the server
+11. Using -X to run applications remotely and on GUI clientside:
+	We do port forwarding (X11):
+	`ssh -X root@192.168.7.2`
+	-- Port forward from you to client
+	`ssh -X hanif@192.168.43.44`
+	-- Port forward from client to server
+	Running this commands on server, now:
+	`firefox`
+	-- A graphical output is forwarded from the server beaglebone -> client beaglebone -> your laptop (the end user)
+	-- It works. A new window with firefox running on it appeared
+12. ssh "-X" vs "-Y"
+	-X is untrusted. You'll get a grachical output, so long you don't violate any security setting on the server
+	-Y is trusted. We get an output, bypassing any security features. 
+The remote machine has access to the entire display and can keylog, screenshot or inject input into all the windows of other programs on the server.
+
+	
+
+
+
+
+
+
+

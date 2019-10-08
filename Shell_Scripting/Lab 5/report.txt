@@ -1,0 +1,185 @@
+Lab 5
+Hanif Leoputera Lim
+504 971 751
+
+1. `vim tr2b.c`
+	-- Created the source code 
+	In the code, I first check that onyl 2 arguments are inputted.
+	Then, I checked that the byte lengths are the same.
+	And also, that "from" has no duplicate bytes.
+	After I finished checking the arguments, I getchar the stdin and check whether the character exist in "from".
+	If it exist, we should putchar the corresponding element in "to". If doesn't, putchar the character from stdin.
+
+2. `cp tr2b.c tr2u.c`
+	-- Make a copy of tr2b.c
+	We just have to change every instance of getchar to read, and of putchar to write.
+	Reading the manual, the function call for read should be read(0, &curr, 1).
+	The first argument is "0" because it's reading stdin,second is &curr is just the pre-defined variable where we'll store what we read, and the third is "1" as only 1 byte (size of char) is read.
+	Similarly, the function call for write is write(1, &curr, 1). First argument: write to stdout, the second: we'll writing down this curr (which contains the character that was read previously) and the third: 1, as we only have to write a character, which is 1 byte long.
+
+3. `seq 0 800000 > filey`
+   `ls -l`
+   -rw-r--r-- 1 classfra class 5488897 Nov  7 22:33 filey
+   -- As seen, 5.4 MB of file is made.
+   (a) Copying one file to another
+   `strace -c ./tr2b "0" "a"<filey>analysis.txt`
+   -- The result is as seen below:
+   % time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 22.53    0.000057           6         9           mmap
+ 18.18    0.000046          46         1           brk
+ 11.07    0.000028           7         4           mprotect
+  9.09    0.000023           0       673           read
+  7.11    0.000018           0       671           write
+  6.72    0.000017           4         4           fstat
+  6.72    0.000017          17         1           execve
+  6.32    0.000016           8         2           open
+  4.74    0.000012          12         1         1 access
+  3.95    0.000010          10         1           munmap
+  2.37    0.000006           3         2           close
+  1.19    0.000003           3         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.000253                  1370         1 total
+-- It took 0.000253s to do 1370 sys calls.
+
+	`strace -c ./tr2u "0" "a"<filey>analysis.txt`
+	-- The result is as seen below:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 55.46   21.995251           4   5488897           write
+ 44.54   17.667029           3   5488899           read
+  0.00    0.000074          37         2           close
+  0.00    0.000072          72         1           execve
+  0.00    0.000050           7         7           mmap
+  0.00    0.000028           7         4           mprotect
+  0.00    0.000022          11         2           open
+  0.00    0.000012          12         1         1 access
+  0.00    0.000011          11         1           munmap
+  0.00    0.000011          11         1           brk
+  0.00    0.000007           4         2           fstat
+  0.00    0.000003           3         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00   39.662570              10977818         1 total
+-- It took 39.662570 to do 10977818 sys calls.
+-- tr2b clearly runs faster. That's because getchar() buffers chunk of characters, while read() takes one character at a time. So, there are more operations for tr2u than tr2b.  
+
+	(b) when copying a file to your terminal
+	`strace -c ./tr2b "0" "a"<filey`	
+	 -- The result is as seen below:
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 99.89    3.698580           5    800001           write
+  0.11    0.003916           6       673           read
+  0.00    0.000000           0         2           open
+  0.00    0.000000           0         2           close
+  0.00    0.000000           0         4           fstat
+  0.00    0.000000           0         9           mmap
+  0.00    0.000000           0         4           mprotect
+  0.00    0.000000           0         1           munmap
+  0.00    0.000000           0         1           brk
+  0.00    0.000000           0         1         1 access
+  0.00    0.000000           0         1           execve
+  0.00    0.000000           0         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00    3.702496                800700         1 total
+-- It took 3.702496 to do 800700 sys calls.
+	
+	`strace -c ./tr2u "0" "a"<filey`
+	-- The result is as seen below:
+	% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+ 55.78   24.295073           4   5488897           write
+ 44.22   19.259028           4   5488899           read
+  0.00    0.000086          86         1           brk
+  0.00    0.000047           7         7           mmap
+  0.00    0.000026           7         4           mprotect
+  0.00    0.000016           8         2           open
+  0.00    0.000011          11         1         1 access
+  0.00    0.000010          10         1           munmap
+  0.00    0.000007           4         2           fstat
+  0.00    0.000006           3         2           close
+  0.00    0.000006           6         1           execve
+  0.00    0.000004           4         1           arch_prctl
+------ ----------- ----------- --------- --------- ----------------
+100.00   43.554320              10977818         1 total
+-- It took 43.554320 to do 10977818 sys calls.
+-- It's slower to output to terminal than to copy into a file. Outputing into the terminal is done line by line, but into a file can buffered. So, more operations to output into the terminal.
+
+4. 
+`time ./tr2b '0' 'a' < filey >time.txt`
+real	0m0.289s
+user	0m0.155s
+sys	0m0.008s
+`time ./tr2u '0' 'a' < filey >time.txt`
+real	0m10.741s
+user	0m1.488s
+sys	0m9.167s
+-- As we can see, tr2b is significantly faster than tr2u.
+
+
+Comparing sfrob, sfrobu & sfrobs performance
+
+Comparing 5 lines:
+sfrob:
+  real  0m0.019s
+  user  0m0.002s
+  sys   0m0.003s
+
+sfrobu: 
+  real  0m0.002s
+  user  0m0.002s
+  sys   0m0.002s
+
+sfrobu -f:
+  real  0m0.003s
+  user  0m0.000s
+  sys   0m0.005s
+
+sfrobs:
+  real  0m0.006s
+  user  0m0.002s
+  sys   0m0.009s
+
+sfrobs -f:
+  real  0m0.006s
+  user  0m0.002s
+  sys   0m0.009s
+
+Comparing 100,000 lines:
+
+sfrob:
+  real  0m0.377s
+  user  0m0.106s
+  sys   0m0.253s
+
+sfrobu:
+  real  0m0.479s
+  user  0m0.082s
+  sys   0m0.389s
+
+sfrobu -f:
+  real  0m0.475s
+  user  0m0.092s
+  sys   0m0.382s
+
+sfrobs:
+  real  0m0.087s
+  user  0m0.006s
+  sys   0m0.068s
+
+sfrobs -f:
+  real  0m0.084s
+  user  0m0.004s
+  sys   0m0.069s
+
+
+-- sfrob is clearly much faster than sfrobu. Using strace, we can see why. Sfrob does fewer operations because getchar and putchar get chunks of data; sfrobu, on the otherhand, it does more operation because my buffer for it was smaller than a getchar/putchar. Therefore, sfrobu is slower.
+-- However, sfrobs is much faster than sfrob because in bash script every command has its own process, processing the input parallely for every command, making it faster than sfrob.
+-- The "-f" flag doesn't really affect the speed.
+So, performance is:
+sfrobs> sfrob > sfrobu, where the "-f" affect the performance minimally.
+
+
+
+
+

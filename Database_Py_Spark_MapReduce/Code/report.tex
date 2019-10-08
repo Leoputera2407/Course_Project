@@ -1,0 +1,166 @@
+\documentclass[11pt]{article}
+% \usepackage{minted}
+
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+
+
+ 
+ 
+ \usepackage{tcolorbox}
+\usepackage{etoolbox}
+%\usepackage[a4paper]{geometry}
+\usepackage[myheadings]{fullpage}
+\usepackage{float}
+\usepackage{fancyhdr}
+%\usepackage{fourier} % this is for the font -- see whether this is nicer than default
+\usepackage[english]{babel}
+
+\newcommand{\HRule}[1]{\rule{\linewidth}{#1}}
+\setcounter{tocdepth}{5}
+\setcounter{secnumdepth}{5}
+\usepackage{minted}
+
+\usepackage[margin=0.5in]{geometry}
+\usepackage{fancyvrb}
+
+\begin{document}
+
+\title{ \normalsize \textsc{Spring 2019 CS143}
+		\\ [2.0cm]
+		\HRule{0.5pt} \\
+		\LARGE \textbf{Project 2B - Spark Machine Learning Project}
+		\HRule{2pt} \\ [0.5cm]
+		\normalsize \today \vspace*{5\baselineskip}}
+
+\date{}
+
+\author{
+        Wilson Jusuf\\
+		Student ID: 404997407\\
+		University of California, Los Angeles\\\\
+        Hanif Leoputera Lim\\
+		Student ID: 504971751\\
+		University of California, Los Angeles}
+
+\maketitle
+\newpage
+\section{Findings}
+\subsection{Sentiment Time series plot by day}
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=1]{plot1-sentiment-over-time.png}
+    \end{center}
+\end{figure}
+
+
+\subsection{Sentiment by State}
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=0.77,trim={0.7cm 0.7cm 0.7cm 0.7cm},clip]{plot2-positive-map.png}
+    \end{center}
+\end{figure}
+
+
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=0.77,trim={0.7cm 0.7cm 0.7cm 0.7cm},clip]{plot2-negative-map.png}
+    \end{center}
+\end{figure}
+
+
+
+\subsection{Sentiment Difference by State}
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=0.70]{plot3-difference-map.png}
+    \end{center}
+\end{figure}
+
+\subsection{Top 10 Positive Stories}
+\begin{tcolorbox}[colback=green!10]
+ \inputminted[ breaklines, breakanywhere, tabsize=2]{text}{./task10_4_top10Pos_stories.csv}
+\end{tcolorbox}
+\subsection{Top 10 Negative Stories}
+\begin{tcolorbox}
+ \inputminted[ breaklines, breakanywhere, tabsize=2]{text}{./task10_4_top10Neg_stories.csv}
+\end{tcolorbox}
+\subsection{Scatterplot of Comment Score and Submission Score vs Sentiment}
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=0.70]{plot5-sentiment-by-comment-score.png}
+    \end{center}
+\end{figure}
+\begin{figure}[H]
+    \begin{center}
+    \includegraphics[scale=0.70]{plot5-sentiment-by-submission-score.png}
+    \end{center}
+\end{figure}
+\subsection{Summary of findings}
+Overall, the sentiment of trump was overall negative in all states.
+There are several states that are pro-Trump, however. North and South Dakota, and a few mid-US states just to name a few.
+Predictably, Eastern (New York, Maine) and Western states (California, Seattle) are against Trump.
+
+Most of the top 10 negative stories relate to trump or his administration. The positive ones, however, are mixed.
+
+Looking at the scatterplot, we see that the sentiment percentages converge to neutral (0.5) as the comment score increases. However, there are also extreme stories (sentiment of 1.0 (100\%) or 0.0 (0\%)) getting high comment scores.
+
+For submission score, the sentiment weakly converges to around 0.4 as submission score increases. The submissions that are more 'neutral' therefore tend to have higher scores.
+
+\section{Questions}
+
+\begin{enumerate}
+\item Take a look at $\texttt{labeled\_data.csv}$. Write the functional dependencies implied by the data.
+    Set $I=\texttt{Input\_id}$, $D=\texttt{labeldem}$, $G=\texttt{labelgop}$, $T=\texttt{labeldjt}$.
+
+    The dependencies are:
+    \begin{itemize}
+        \item  $I \rightarrow D$
+        \item  $I \rightarrow G$
+        \item  $I \rightarrow T$
+\end{itemize}
+
+\item Take a look at the schema for comments. Forget BCNF and 3NF. Does the data frame look normalized? In other words, is the data frame free of redundancies that might affect insert/update integrity? If not, how would we decompose it? Why do you believe the collector of the data stored it in this way?
+
+    The data frame isn’t normalized. There are redundancies like ($\texttt{subreddit\_id}$, $\texttt{subreddit}$), so updating the subreddit would require us to update $\texttt{subreddit\_id}$ too. This could lead to insert/update integrity if the DBA isn’t careful. 
+	To decompose it, we could break relation R into $\text{R2}(\texttt{subreddit\_id},\; \texttt{subreddit})$, while $\text{R1}$ will have everything in R except for “$\texttt{subreddit}$”. 
+    However, one reason why the previous schema was used is because joining two separate tables are expensive. Querying which subreddit a comment come from, is probably so common that these two tables are frequently joined, hence computationally wasteful. 
+
+\item Pick one of the joins that you executed for this project. Rerun the join with $\texttt{.explain()}$ attached to it. Include the output. What do you notice? Explain what Spark SQL is doing during the join. Which join algorithm does Spark seem to be using?
+
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=1.1]{Q3.png}
+    \end{center}
+\end{figure}
+    Spark first sequentially scanned the parquet, select all the attributes in the relation and then select all the attributes that we wanted. Once projected, the smaller and filtered table will be broadcast hash joined on the attribute we specified. Once joined, the attributes that we want are selected again.
+    In Spark, table will be transmitted through the network with broadcast hash joins. Transmitting a huge table is prohibitively slow. So, we feel this is the reason why spark seems to redundantly select only the attributes we need before it gets broadcasted.
+    Spark is using broadcast hash join. Spark is usually ran across many machines i.e. RDD, thus it usually have to join across partitions in different machines. Thus, the reason why they use broadcast hash join.  
+
+\section{Classfier}
+	We changed the positive and negative classifiers' thresholds to their optimal values based on how close it is to the point $(\text{FPR} = 0,\; \text{TPR}=0)$. Formally, we want the threshold $T$ as the minimal euclidean distance:
+	\begin{equation}
+	    \hat{T} = \underset{T}{\text{argmin}}\sqrt{(\text{FPR}_T)^2 + (1 - \text{TPR}_T)^2}
+	\end{equation}
+
+Here are our classifier auROC graphs:
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=0.75]{positive classifier.png}
+    \end{center}
+\end{figure}
+\begin{figure}[H]
+    \begin{center}
+  \includegraphics[scale=0.75]{negative classifier.png}
+    \end{center}
+\end{figure}
+
+\section{Analysis.py}
+    We modified the vmin and vmax based on our range of positive and negative percentage. We also modified how the map is colored.
+      Instead of normalizing with a square root, we scale our data linearly. Our map is coloured more correctly as a result.
+\end{enumerate}
+
+
+\end{document}
