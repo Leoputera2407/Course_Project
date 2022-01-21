@@ -10,7 +10,7 @@ decorator==4.4.0
 distro-info===0.21ubuntu2
 entrypoints==0.3
 idna==2.6
-ipython==7.5.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 jedi==0.13.3
 keyring==17.1.1
